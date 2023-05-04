@@ -27,6 +27,9 @@ function setup() {
   buttonHeight=windowHeight/10;
   
   createCanvas(windowWidth, windowHeight);
+  
+  soundEffect = loadSound('sound effect.mp3');
+  
   {//setup screen
     background(200);
 
@@ -109,6 +112,8 @@ function pomodoro(_work,_rest){//int,int
     endTime=getTargetTime((working==true)?_work:_rest);
     currentButtonsAmount=6;
     buttons[0]=makeButton("Reset",6,()=>{_reset=true;});
+    
+    soundEffect.play();
     
     doOnce=false;
   }
