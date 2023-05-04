@@ -17,6 +17,7 @@ var startTime;
 var endTime;
 var doOnce=false;
 var timeMode=0;//0=1hours,60minutes,3600seconds / 1=1hours,0minutes,0seconds
+var timeLeft;
 function setup() {
   buttonWidth=windowWidth/5;
   buttonHeight=windowHeight/10;
@@ -69,7 +70,7 @@ function pomodoro(_work,_rest){//int,int
     doOnce=false;
   }
   background((working==true)?color(0,255,0):color(0,0,255));
-  var timeLeft=getTimeDifference(millis()/1000,endTime);
+  timeLeft=getTimeDifference(millis()/1000,endTime);
   if(timeLeft[2]<=0){//negative seconds left
   	working=!working;//switch modes
     doOnce=true;//recalculate time to finish
@@ -81,10 +82,12 @@ function pomodoro(_work,_rest){//int,int
       +timeLeft[2]+" seconds remaining. \n"
       ,windowWidth/2,windowHeight/2);
   }else{//=1
+  	var secondsfixed=(timeLeft[2]>=60)?timeLeft[2]%60:timeLeft[2];
+    secondsfixed=parseFloat(secondsfixed).toFixed(2);
   	theText=text(((working==true)?"Working":"Resting")+" for "+((working==true)?_work:_rest)+" minutes. \n"
   		+timeLeft[0]+" hours and\n"
       +((timeLeft[1]>=60)?timeLeft[1]%60:timeLeft[1])+" minutes and\n"
-      +((timeLeft[2]>=60)?timeLeft[2]%60:timeLeft[2]).toFixed(2)+" seconds remaining. \n"
+      +secondsfixed+" seconds remaining. \n"
       ,windowWidth/2,windowHeight/2);
   }
   
