@@ -5,6 +5,7 @@
 </head>
 <body>
 <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.js"></script>
+<script src="p5.sound.js"></script>
 <script>
 var pomodoromode=false;
 var modes=["60x60","25x25","45x10","1x1","0.1x1","90x90"];//add modes here
@@ -22,6 +23,7 @@ var timeMode=1;//0=1hours,60minutes,3600seconds / 1=1hours,0minutes,0seconds
 var timeLeft;
 var bg;//global bg color
 var _reset=false;
+var soundEffect;
 function setup() {
   buttonWidth=windowWidth/5;
   buttonHeight=windowHeight/10;
