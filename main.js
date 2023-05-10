@@ -1,168 +1,203 @@
+var bg; //global bg color
+
 var pomodoromode = false;
-var modes = ["60x60", "25x25", "45x10", "1x1", "0.1x1", "90x90"];//add modes here
+var modes = ["60x60", "25x25", "45x10", "1x1", "0.1x1", "90x90"]; //add modes here
 var buttons = [];
 var work, rest;
-var working = true;//false=resting
+var working = true; //false=resting
 var currentButtonsAmount = 0;
-var buttonWidth, buttonHeight;//global
+var buttonWidth, buttonHeight; //global
 var startTime;
 var endTime;
-var doOnce = false;//for pomodoro screen
-var doOnce2 = false;//for start screen
-var theText;//for pomodoro screen - global 
-var timeMode = 1;//0=1hours,60minutes,3600seconds / 1=1hours,0minutes,0seconds
+var doOnce = false; //for pomodoro screen
+var theText; //for pomodoro screen - global
+var timeMode = 1; //0=1hours,60minutes,3600seconds / 1=1hours,0minutes,0seconds
 var timeLeft;
-var bg;//global bg color
 var _reset = false;
 var soundEffect;
 
 function setup() {
-    buttonWidth = windowWidth / 5;
-    buttonHeight = windowHeight / 10;
+  buttonWidth = windowWidth / 5;
+  buttonHeight = windowHeight / 10;
 
-    createCanvas(windowWidth, windowHeight);
+  createCanvas(windowWidth, windowHeight);
 
-    soundEffect = loadSound('sound effect.mp3');
+  soundEffect = loadSound("sound effect.mp3");
+  //setup screen
+  background(200);
 
-    {//setup screen
-        background(200);
+  textAlign(CENTER);
 
-        textAlign(CENTER);
-
-        var buttonsAmount = modes.length;
-        //create starting buttons
-        for (var i = 0; i < buttonsAmount; i++) {
-            buttons[i] = createButton(modes[i]);
-            buttons[i].position(windowWidth / 2 - buttonWidth / 2, (windowHeight / 2) + (i * buttonHeight) - (buttonsAmount * buttonHeight / 2));
-            buttons[i].size(buttonWidth, buttonHeight);
-            buttons[i].mousePressed((function (index) {
-                return function () {
-                    setMode(modes[index]);
-                }
-            })(i));//IIFE
-        }
-    }
+  var buttonsAmount = modes.length;
+  //create starting buttons
+  for (var i = 0; i < buttonsAmount; i++) {
+    buttons[i] = createButton(modes[i]);
+    buttons[i].position(
+      windowWidth / 2 - buttonWidth / 2,
+      windowHeight / 2 + i * buttonHeight - (buttonsAmount * buttonHeight) / 2
+    );
+    buttons[i].size(buttonWidth, buttonHeight);
+    buttons[i].mousePressed(
+      (
+        (index) => () =>
+          setMode(modes[index])
+      )(i)
+    ); //IIFE
+  }
 }
 function draw() {
-    if (_reset) {//executes once to reset program
-        //console.log("asldkas");
-        buttons.forEach((b) => { b.remove() });
-        pomodoromode = false;
-        timeMode = 1;
-        clear();
-        {//setup screen
-            background(200);
-
-            textAlign(CENTER);
-
-            var buttonsAmount = modes.length;
-            //create starting buttons
-            for (var i = 0; i < buttonsAmount; i++) {
-                buttons[i] = createButton(modes[i]);
-                buttons[i].position(windowWidth / 2 - buttonWidth / 2, (windowHeight / 2) + (i * buttonHeight) - (buttonsAmount * buttonHeight / 2));
-                buttons[i].size(buttonWidth, buttonHeight);
-                buttons[i].mousePressed((function (index) {
-                    return function () {
-                        setMode(modes[index]);
-                    }
-                })(i));//IIFE
-            }
-        }
-
-        _reset = false;
-    }
-    if (bg == "grey") {
-        background(color(30));
-    }
-    if (pomodoromode) {
-        pomodoro(work, rest);
-    } else {
-
-    }
-
+  if (_reset) drawReset();
+  if (bg == "grey") background(color(30));
+  if (pomodoromode) pomodoro(work, rest);
 }
+
+function drawReset() {
+  //executes once to reset program
+  //console.log("asldkas");
+  buttons.forEach((b) => b.remove());
+  pomodoromode = false;
+  timeMode = 1;
+  clear();
+  //setup screen
+  background(200);
+
+  textAlign(CENTER);
+
+  var buttonsAmount = modes.length;
+  //create starting buttons
+  for (var i = 0; i < buttonsAmount; i++) {
+    buttons[i] = createButton(modes[i]);
+    buttons[i].position(
+      windowWidth / 2 - buttonWidth / 2,
+      windowHeight / 2 + i * buttonHeight - (buttonsAmount * buttonHeight) / 2
+    );
+    buttons[i].size(buttonWidth, buttonHeight);
+    buttons[i].mousePressed(
+      (
+        (index) => () =>
+          setMode(modes[index])
+      )(i)
+    ); //IIFE
+  }
+
+  _reset = false;
+}
+
 function mouseClicked() {
-    if (pomodoromode) {
-        timeMode = !timeMode;
-    }
+  if (pomodoromode) timeMode = !timeMode;
 }
+
 function setMode(_mode) {
-    m = 1;
-    work = _mode.substring(0, _mode.indexOf("x"));
-    rest = _mode.substring(_mode.indexOf("x") + 1);
-    //console.log(work+"+"+rest);
+  m = 1;
+  work = _mode.substring(0, _mode.indexOf("x"));
+  rest = _mode.substring(_mode.indexOf("x") + 1);
+  //console.log(work+"+"+rest);
 
-    buttons.forEach((b) => { b.remove() });
+  buttons.forEach((b) => b.remove());
 
-    currentButtonsAmount = 1;
-    buttons[0] = makeButton("start", 1, () => { doOnce = true; pomodoromode = true });
+  currentButtonsAmount = 1;
+  buttons[0] = makeButton("start", 1, () => (doOnce = pomodoromode = true));
 }
-function pomodoro(_work, _rest) {//int,int
-    textSize((windowWidth + windowHeight) / 2 / 25);
+function pomodoro(_work, _rest) {
+  //int,int
+  textSize((windowWidth + windowHeight) / 2 / 25);
 
-    if (doOnce) {
-        buttons.forEach((b) => { b.remove() });
-        startTime = getTime();
-        endTime = getTargetTime((working == true) ? _work : _rest);
-        currentButtonsAmount = 6;
-        buttons[0] = makeButton("Reset", 6, () => { _reset = true; });
+  if (doOnce) {
+    buttons.forEach((b) => b.remove());
+    startTime = getTime();
+    endTime = getTargetTime(working ? _work : _rest);
+    currentButtonsAmount = 6;
+    buttons[0] = makeButton("Reset", 6, () => (_reset = true));
 
-        soundEffect.play();
+    soundEffect.play();
 
-        doOnce = false;
-    }
-    background((working == true) ? color(0, 255, 0) : color(0, 0, 255));
+    doOnce = false;
+  }
+  background(working ? color(0, 255, 0) : color(0, 0, 255));
 
-    timeLeft = getTimeDifference(millis() / 1000, endTime);
-    if (timeLeft[2] <= 0) {//negative seconds left
-        working = !working;//switch modes
-        doOnce = true;//recalculate time to finish
-    }
-    if (timeMode == 0) {//set text based on display mode
-        theText = text(((working == true) ? "Working" : "Resting") + " for " + ((working == true) ? _work : _rest) + " minutes. \n"
-            + timeLeft[0] + " hours remaining. \n"
-            + timeLeft[1] + " minutes remaining. \n"
-            + timeLeft[2] + " seconds remaining. \n"
-            , windowWidth / 2, windowHeight / 2);
-    } else {//=1
-        var secondsfixed = (timeLeft[2] >= 60) ? timeLeft[2] % 60 : timeLeft[2];
-        secondsfixed = parseFloat(secondsfixed).toFixed(2);
-        theText = text(((working == true) ? "Working" : "Resting") + " for " + ((working == true) ? _work : _rest) + " minutes. \n"
-            + timeLeft[0] + " hours and\n"
-            + ((timeLeft[1] >= 60) ? timeLeft[1] % 60 : timeLeft[1]) + " minutes and\n"
-            + secondsfixed + " seconds remaining. \n"
-            , windowWidth / 2, windowHeight / 2);
-    }
-
+  timeLeft = getTimeDifference(getTime(), endTime);
+  if (timeLeft[2] <= 0) {
+    //negative seconds left
+    working = !working; //switch modes
+    doOnce = true; //recalculate time to finish
+  }
+  if (timeMode == 0) {
+    //set text based on display mode
+    theText = text(
+      (working ? "Working" : "Resting") +
+        " for " +
+        (working ? _work : _rest) +
+        " minutes. \n" +
+        timeLeft[0] +
+        " hours remaining. \n" +
+        timeLeft[1] +
+        " minutes remaining. \n" +
+        timeLeft[2] +
+        " seconds remaining. \n",
+      windowWidth / 2,
+      windowHeight / 2
+    );
+  } else {
+    //=1
+    var secondsfixed = timeLeft[2] >= 60 ? timeLeft[2] % 60 : timeLeft[2];
+    secondsfixed = parseFloat(secondsfixed).toFixed(2);
+    theText = text(
+      (working ? "Working" : "Resting") +
+        " for " +
+        (working ? _work : _rest) +
+        " minutes. \n" +
+        timeLeft[0] +
+        " hours and\n" +
+        (timeLeft[1] >= 60 ? timeLeft[1] % 60 : timeLeft[1]) +
+        " minutes and\n" +
+        secondsfixed +
+        " seconds remaining. \n",
+      windowWidth / 2,
+      windowHeight / 2
+    );
+  }
 }
-function makeButton(txt, totalButtons, mPressed) {//string,int,function
-    //totalButtons=intended total number of buttons
-    //currentButtonsAmount=the current number of buttons on screen before creation of this one
-    var tmp;
-    tmp = createButton(txt);
-    tmp.position(windowWidth / 2 - buttonWidth / 2, (windowHeight / 2) + (currentButtonsAmount * buttonHeight) - (totalButtons * buttonHeight / 2));
-    tmp.size(buttonWidth, buttonHeight);
-    tmp.mousePressed(mPressed);//function
 
-    currentButtonsAmount++;
-    return tmp;
-}
-function getTime() {//get time in seconds since start of program
-    return millis() / 1000;
-}
-function getTargetTime(mins) {//mins=minutes in the future
-    return millis() / 1000 + (mins * 60);//returns time in seconds from setup() to target time
-}
-function getTimeDifference(current, target) {//params are seconds
-    var temp = [];//0=hours,1=minutes,2=seconds
-    var diff = (target - current)//difference in seconds
-    temp[0] = Math.floor(diff / 60 / 60);//hours
-    temp[1] = Math.floor(diff / 60);//minutes
-    temp[2] = diff;//seconds
-    temp[2] = temp[2].toFixed(2);//seconds to two decimal places
+function makeButton(txt, totalButtons, mPressed) {
+  //string,int,function
+  //totalButtons=intended total number of buttons
+  //currentButtonsAmount=the current number of buttons on screen before creation of this one
+  var tmp = createButton(txt);
+  tmp.position(
+    windowWidth / 2 - buttonWidth / 2,
+    windowHeight / 2 +
+      currentButtonsAmount * buttonHeight -
+      (totalButtons * buttonHeight) / 2
+  );
+  tmp.size(buttonWidth, buttonHeight);
+  tmp.mousePressed(mPressed); //function
 
-    return temp;
+  currentButtonsAmount++;
+  return tmp;
 }
+
+function getTime() {
+  //get time in seconds since start of program
+  return millis() / 1000;
+}
+
+function getTargetTime(mins) {
+  //mins=minutes in the future
+  return getTime() + mins * 60; //returns time in seconds from setup() to target time
+}
+
+function getTimeDifference(current, target) {
+  //params are seconds
+  var temp = []; //0=hours,1=minutes,2=seconds
+  var diff = target - current; //difference in seconds
+  temp[0] = Math.floor(diff / 60 / 60); //hours
+  temp[1] = Math.floor(diff / 60); //minutes
+  temp[2] = diff; //seconds
+  temp[2] = temp[2].toFixed(2); //seconds to two decimal places
+
+  return temp;
+}
+
 function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
+  resizeCanvas(windowWidth, windowHeight);
 }
