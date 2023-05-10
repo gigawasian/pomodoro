@@ -17,187 +17,210 @@ var _reset = false;
 var soundEffect;
 
 function setup() {
-  buttonWidth = windowWidth / 5;
-  buttonHeight = windowHeight / 10;
+	buttonWidth = windowWidth / 5;
+	buttonHeight = windowHeight / 10;
 
-  createCanvas(windowWidth, windowHeight);
+	createCanvas(windowWidth, windowHeight);
 
-  soundEffect = loadSound("sound effect.mp3");
-  //setup screen
-  background(200);
+	soundEffect = loadSound("sound effect.mp3");
+	//setup screen
+	background(200);
 
-  textAlign(CENTER);
+	textAlign(CENTER);
 
-  var buttonsAmount = modes.length;
-  //create starting buttons
-  for (var i = 0; i < buttonsAmount; i++) {
-    buttons[i] = createButton(modes[i]);
-    buttons[i].position(
-      windowWidth / 2 - buttonWidth / 2,
-      windowHeight / 2 + i * buttonHeight - (buttonsAmount * buttonHeight) / 2
-    );
-    buttons[i].size(buttonWidth, buttonHeight);
-    buttons[i].mousePressed(
-      (
-        (index) => () =>
-          setMode(modes[index])
-      )(i)
-    ); //IIFE
-  }
+	var buttonsAmount = modes.length;
+	//create starting buttons
+	for (var i = 0; i < buttonsAmount; i++) {
+		buttons[i] = createButton(modes[i]);
+		buttons[i].position(
+			windowWidth / 2 - buttonWidth / 2,
+			windowHeight / 2 + i * buttonHeight - (buttonsAmount * buttonHeight) / 2
+		);
+		buttons[i].size(buttonWidth, buttonHeight);
+		buttons[i].mousePressed(
+			(
+				(index) => () =>
+					setMode(modes[index])
+			)(i)
+		); //IIFE
+	}
 }
+
 function draw() {
-  if (_reset) drawReset();
-  if (bg == "grey") background(color(30));
-  if (pomodoromode) pomodoro(work, rest);
+	if (_reset) drawReset();
+	if (bg == "grey") background(color(30));
+	if (pomodoromode) pomodoro(work, rest);
 }
 
 function drawReset() {
-  //executes once to reset program
-  //console.log("asldkas");
-  buttons.forEach((b) => b.remove());
-  pomodoromode = false;
-  timeMode = 1;
-  clear();
-  //setup screen
-  background(200);
+	//executes once to reset program
+	//console.log("asldkas");
+	buttons.forEach((b) => b.remove());
+	pomodoromode = false;
+	timeMode = 1;
+	clear();
+	//setup screen
+	background(200);
 
-  textAlign(CENTER);
+	textAlign(CENTER);
 
-  var buttonsAmount = modes.length;
-  //create starting buttons
-  for (var i = 0; i < buttonsAmount; i++) {
-    buttons[i] = createButton(modes[i]);
-    buttons[i].position(
-      windowWidth / 2 - buttonWidth / 2,
-      windowHeight / 2 + i * buttonHeight - (buttonsAmount * buttonHeight) / 2
-    );
-    buttons[i].size(buttonWidth, buttonHeight);
-    buttons[i].mousePressed(
-      (
-        (index) => () =>
-          setMode(modes[index])
-      )(i)
-    ); //IIFE
-  }
+	var buttonsAmount = modes.length;
+	//create starting buttons
+	for (var i = 0; i < buttonsAmount; i++) {
+		buttons[i] = createButton(modes[i]);
+		buttons[i].position(
+			windowWidth / 2 - buttonWidth / 2,
+			windowHeight / 2 + i * buttonHeight - (buttonsAmount * buttonHeight) / 2
+		);
+		buttons[i].size(buttonWidth, buttonHeight);
+		buttons[i].mousePressed(
+			(
+				(index) => () =>
+					setMode(modes[index])
+			)(i)
+		); //IIFE
+	}
 
-  _reset = false;
+	_reset = false;
 }
 
 function mouseClicked() {
-  if (pomodoromode) timeMode = !timeMode;
+	if (pomodoromode) timeMode = !timeMode;
 }
 
-function setMode(_mode) {
-  m = 1;
-  work = _mode.substring(0, _mode.indexOf("x"));
-  rest = _mode.substring(_mode.indexOf("x") + 1);
-  //console.log(work+"+"+rest);
+/**
+ * Makes one button to start the timer with the specified mode and destroys all other buttons.
+ * @param {string} mode - The timer mode, formatted like so: `"<Work time>x<Rest time>"`
+ */
+function setMode(mode) {
+	work = mode.substring(0, mode.indexOf("x"));
+	rest = mode.substring(mode.indexOf("x") + 1);
 
-  buttons.forEach((b) => b.remove());
+	buttons.forEach((b) => b.remove());
 
-  currentButtonsAmount = 1;
-  buttons[0] = makeButton("start", 1, () => (doOnce = pomodoromode = true));
+	buttons[0] = makeButton("start", currentButtonsAmount = 1, () => (doOnce = pomodoromode = true));
 }
+
+/**
+ * Updates the screen to show the proper text about time left in a session.
+ * @param {number} _work - The time to spend working
+ * @param {number} _rest - The time to spend resting
+ */
 function pomodoro(_work, _rest) {
-  //int,int
-  textSize((windowWidth + windowHeight) / 2 / 25);
+	textSize((windowWidth + windowHeight) / 2 / 25);
 
-  if (doOnce) {
-    buttons.forEach((b) => b.remove());
-    startTime = getTime();
-    endTime = getTargetTime(working ? _work : _rest);
-    currentButtonsAmount = 6;
-    buttons[0] = makeButton("Reset", 6, () => (_reset = true));
+	if (doOnce) {
+		buttons.forEach((b) => b.remove());
+		startTime = getTime();
+		endTime = getTargetTime(working ? _work : _rest);
+		currentButtonsAmount = 6;
+		buttons[0] = makeButton("Reset", 6, () => (_reset = true));
 
-    soundEffect.play();
+		soundEffect.play();
 
-    doOnce = false;
-  }
-  background(working ? color(0, 255, 0) : color(0, 0, 255));
+		doOnce = false;
+	}
 
-  timeLeft = getTimeDifference(getTime(), endTime);
-  if (timeLeft[2] <= 0) {
-    //negative seconds left
-    working = !working; //switch modes
-    doOnce = true; //recalculate time to finish
-  }
-  if (timeMode == 0) {
-    //set text based on display mode
-    theText = text(
-      (working ? "Working" : "Resting") +
-        " for " +
-        (working ? _work : _rest) +
-        " minutes. \n" +
-        timeLeft[0] +
-        " hours remaining. \n" +
-        timeLeft[1] +
-        " minutes remaining. \n" +
-        timeLeft[2] +
-        " seconds remaining. \n",
-      windowWidth / 2,
-      windowHeight / 2
-    );
-  } else {
-    //=1
-    var secondsfixed = timeLeft[2] >= 60 ? timeLeft[2] % 60 : timeLeft[2];
-    secondsfixed = parseFloat(secondsfixed).toFixed(2);
-    theText = text(
-      (working ? "Working" : "Resting") +
-        " for " +
-        (working ? _work : _rest) +
-        " minutes. \n" +
-        timeLeft[0] +
-        " hours and\n" +
-        (timeLeft[1] >= 60 ? timeLeft[1] % 60 : timeLeft[1]) +
-        " minutes and\n" +
-        secondsfixed +
-        " seconds remaining. \n",
-      windowWidth / 2,
-      windowHeight / 2
-    );
-  }
+	background(working ? color(0, 255, 0) : color(0, 0, 255));
+
+	timeLeft = getTimeDifference(getTime(), endTime);
+
+	if (timeLeft[2] <= 0) {
+		//negative seconds left
+		working = !working; //switch modes
+		doOnce = true; //recalculate time to finish
+	}
+	if (timeMode == 0) {
+		//set text based on display mode
+		theText = text(
+			(working ? "Working" : "Resting") +
+			" for " +
+			(working ? _work : _rest) +
+			" minutes. \n" +
+			timeLeft[0] +
+			" hours remaining. \n" +
+			timeLeft[1] +
+			" minutes remaining. \n" +
+			timeLeft[2] +
+			" seconds remaining. \n",
+			windowWidth / 2,
+			windowHeight / 2
+		);
+	} else {
+		//=1
+		var secondsfixed = timeLeft[2] >= 60 ? timeLeft[2] % 60 : timeLeft[2];
+		secondsfixed = parseFloat(secondsfixed).toFixed(2);
+		theText = text(
+			(working ? "Working" : "Resting") +
+			" for " +
+			(working ? _work : _rest) +
+			" minutes. \n" +
+			timeLeft[0] +
+			" hours and\n" +
+			(timeLeft[1] >= 60 ? timeLeft[1] % 60 : timeLeft[1]) +
+			" minutes and\n" +
+			secondsfixed +
+			" seconds remaining. \n",
+			windowWidth / 2,
+			windowHeight / 2
+		);
+	}
 }
-
+/**
+ * Creates a button on the screen.
+ * @param {string} txt - The text on the button
+ * @param {number} totalButtons - The intended total number of buttons
+ * @param {() => void} mPressed - The callback to be ran when the button is clicked
+ * @returns 
+ */
 function makeButton(txt, totalButtons, mPressed) {
-  //string,int,function
-  //totalButtons=intended total number of buttons
-  //currentButtonsAmount=the current number of buttons on screen before creation of this one
-  var tmp = createButton(txt);
-  tmp.position(
-    windowWidth / 2 - buttonWidth / 2,
-    windowHeight / 2 +
-      currentButtonsAmount * buttonHeight -
-      (totalButtons * buttonHeight) / 2
-  );
-  tmp.size(buttonWidth, buttonHeight);
-  tmp.mousePressed(mPressed); //function
+	//string,int,function
+	//totalButtons=intended total number of buttons
+	//currentButtonsAmount=the current number of buttons on screen before creation of this one
+	var button = createButton(txt);
+	button.position(
+		windowWidth / 2 - buttonWidth / 2,
+		windowHeight / 2 +
+		currentButtonsAmount * buttonHeight -
+		(totalButtons * buttonHeight) / 2
+	);
+	button.size(buttonWidth, buttonHeight);
+	button.mousePressed(mPressed); //function
 
-  currentButtonsAmount++;
-  return tmp;
+	currentButtonsAmount++;
+
+	return tmp;
 }
 
 function getTime() {
-  //get time in seconds since start of program
-  return millis() / 1000;
+	//get time in seconds since start of program
+	return millis() / 1000;
 }
 
+/**
+ * Returns how long the program will have ran for some number of minutes in the future.
+ * Or, time in seconds from setup() to target time.
+ * @param {number} mins - The number of minutes in the future .
+ * @returns {number} How long the program would have ran `mins` minutes in the future, in seconds.
+ */
 function getTargetTime(mins) {
-  //mins=minutes in the future
-  return getTime() + mins * 60; //returns time in seconds from setup() to target time
+	return getTime() + mins * 60;
 }
 
+/**
+ * Returns the difference in time between `current` and `target` in hours, minutes, and seconds.
+ * @param {number} current - The current time, in seconds
+ * @param {number} target - The target time, in seconds
+ * @returns {Array} An `Array`, where element 0 is hours, 1 is minutes, 2 is seconds.
+ */
 function getTimeDifference(current, target) {
-  //params are seconds
-  var temp = []; //0=hours,1=minutes,2=seconds
-  var diff = target - current; //difference in seconds
-  temp[0] = Math.floor(diff / 60 / 60); //hours
-  temp[1] = Math.floor(diff / 60); //minutes
-  temp[2] = diff; //seconds
-  temp[2] = temp[2].toFixed(2); //seconds to two decimal places
+	// TODO: #1 Change this to return a more appropriate structure, maybe object.
 
-  return temp;
-}
+	const diff = target - current;
 
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
+	return [
+		Math.floor(diff / 60 / 60), // Hours
+		Math.floor(diff / 60),      // Minutes
+		diff.toFixed(2),            // Seconds to two decimal places
+	];
 }
