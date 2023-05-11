@@ -26,13 +26,7 @@ function setup() {
 
 	textAlign(CENTER);
 
-	buttons = modes
-		.map(createButton)
-		.map(b => b.position(
-			windowWidth / 2 - buttonWidth / 2,
-			windowHeight / 2 + i * buttonHeight - (buttonsAmount * buttonHeight) / 2))
-		.map(b => b.size(buttonWidth, buttonHeight))
-		.map(b, idx => b.mousePressed(() => setMode(modes[idx])));
+	buttons = createButtonsFromModes(modes);
 }
 
 function draw() {
@@ -51,14 +45,7 @@ function drawReset() {
 
 	textAlign(CENTER);
 
-	buttons = modes
-		.map(createButton)
-		.map(b => b.position(
-			windowWidth / 2 - buttonWidth / 2,
-			windowHeight / 2 + i * buttonHeight - (buttonsAmount * buttonHeight) / 2))
-		.map(b => b.size(buttonWidth, buttonHeight))
-		.map(b, idx => b.mousePressed(() => setMode(modes[idx])));
-
+	buttons = createButtonsFromModes(modes);
 	_reset = false;
 }
 
@@ -144,6 +131,22 @@ function pomodoro(_work, _rest) {
 		);
 	}
 }
+
+/**
+ * Creates a list of buttons from a list of timer modes. Each buttonwill start the corresponding mode when clicked.
+ * @param {string[]} modes - List of timer modes that the buttons should start.
+ * @returns {Button[]} The list of buttons that start the timer with their mode.
+ */
+function createButtonsFromModes(modes) {
+	return modes
+		.map(createButton)
+		.map(b => b.position(
+			windowWidth / 2 - buttonWidth / 2,
+			windowHeight / 2 + i * buttonHeight - (buttonsAmount * buttonHeight) / 2))
+		.map(b => b.size(buttonWidth, buttonHeight))
+		.map(b, idx => b.mousePressed(() => setMode(modes[idx])));
+}
+
 /**
  * Creates a button on the screen.
  * @param {string} txt - The text on the button
