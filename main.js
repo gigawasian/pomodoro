@@ -26,21 +26,16 @@ function setup() {
 
 	textAlign(CENTER);
 
-	var buttonsAmount = modes.length;
+	let buttonsAmount = modes.length;
 	//create starting buttons
-	for (var i = 0; i < buttonsAmount; i++) {
+	for (let i = 0; i < buttonsAmount; i++) {
 		buttons[i] = createButton(modes[i]);
 		buttons[i].position(
 			windowWidth / 2 - buttonWidth / 2,
 			windowHeight / 2 + i * buttonHeight - (buttonsAmount * buttonHeight) / 2
 		);
 		buttons[i].size(buttonWidth, buttonHeight);
-		buttons[i].mousePressed(
-			(
-				(index) => () =>
-					setMode(modes[index])
-			)(i)
-		); //IIFE
+		buttons[i].mousePressed(() => setMode(modes[i]));
 	}
 }
 
@@ -60,21 +55,16 @@ function drawReset() {
 
 	textAlign(CENTER);
 
-	var buttonsAmount = modes.length;
+	let buttonsAmount = modes.length;
 	//create starting buttons
-	for (var i = 0; i < buttonsAmount; i++) {
+	for (let i = 0; i < buttonsAmount; i++) {
 		buttons[i] = createButton(modes[i]);
 		buttons[i].position(
 			windowWidth / 2 - buttonWidth / 2,
 			windowHeight / 2 + i * buttonHeight - (buttonsAmount * buttonHeight) / 2
 		);
 		buttons[i].size(buttonWidth, buttonHeight);
-		buttons[i].mousePressed(
-			(
-				(index) => () =>
-					setMode(modes[index])
-			)(i)
-		); //IIFE
+		buttons[i].mousePressed(() => setMode(modes[i]));
 	}
 
 	_reset = false;
