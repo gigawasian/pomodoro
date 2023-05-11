@@ -1,5 +1,3 @@
-var bg; //global bg color
-
 var pomodoromode = false;
 var modes = ["60x60", "25x25", "45x10", "1x1", "0.1x1", "90x90"]; //add modes here
 var buttons = [];
@@ -48,13 +46,11 @@ function setup() {
 
 function draw() {
 	if (_reset) drawReset();
-	if (bg == "grey") background(color(30));
 	if (pomodoromode) pomodoro(work, rest);
 }
 
 function drawReset() {
 	//executes once to reset program
-	//console.log("asldkas");
 	buttons.forEach((b) => b.remove());
 	pomodoromode = false;
 	timeMode = 1;
@@ -174,8 +170,6 @@ function pomodoro(_work, _rest) {
  * @returns 
  */
 function makeButton(txt, totalButtons, mPressed) {
-	//string,int,function
-	//totalButtons=intended total number of buttons
 	//currentButtonsAmount=the current number of buttons on screen before creation of this one
 	var button = createButton(txt);
 	button.position(
@@ -189,17 +183,20 @@ function makeButton(txt, totalButtons, mPressed) {
 
 	currentButtonsAmount++;
 
-	return tmp;
+	return button;
 }
 
+/**
+ * Gets the time, in seconds, since the start of the program.
+ * @returns The time, in seconds, since the start of the program.
+ */
 function getTime() {
-	//get time in seconds since start of program
 	return millis() / 1000;
 }
 
 /**
  * Returns how long the program will have ran for some number of minutes in the future.
- * Or, time in seconds from setup() to target time.
+ * Or, time in seconds from `setup()` to target time.
  * @param {number} mins - The number of minutes in the future .
  * @returns {number} How long the program would have ran `mins` minutes in the future, in seconds.
  */
