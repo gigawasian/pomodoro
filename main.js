@@ -26,17 +26,13 @@ function setup() {
 
 	textAlign(CENTER);
 
-	let buttonsAmount = modes.length;
-	//create starting buttons
-	for (let i = 0; i < buttonsAmount; i++) {
-		buttons[i] = createButton(modes[i]);
-		buttons[i].position(
+	buttons = modes
+		.map(createButton)
+		.map(b => b.position(
 			windowWidth / 2 - buttonWidth / 2,
-			windowHeight / 2 + i * buttonHeight - (buttonsAmount * buttonHeight) / 2
-		);
-		buttons[i].size(buttonWidth, buttonHeight);
-		buttons[i].mousePressed(() => setMode(modes[i]));
-	}
+			windowHeight / 2 + i * buttonHeight - (buttonsAmount * buttonHeight) / 2))
+		.map(b => b.size(buttonWidth, buttonHeight))
+		.map(b, idx => b.mousePressed(() => setMode(modes[idx])));
 }
 
 function draw() {
@@ -55,17 +51,13 @@ function drawReset() {
 
 	textAlign(CENTER);
 
-	let buttonsAmount = modes.length;
-	//create starting buttons
-	for (let i = 0; i < buttonsAmount; i++) {
-		buttons[i] = createButton(modes[i]);
-		buttons[i].position(
+	buttons = modes
+		.map(createButton)
+		.map(b => b.position(
 			windowWidth / 2 - buttonWidth / 2,
-			windowHeight / 2 + i * buttonHeight - (buttonsAmount * buttonHeight) / 2
-		);
-		buttons[i].size(buttonWidth, buttonHeight);
-		buttons[i].mousePressed(() => setMode(modes[i]));
-	}
+			windowHeight / 2 + i * buttonHeight - (buttonsAmount * buttonHeight) / 2))
+		.map(b => b.size(buttonWidth, buttonHeight))
+		.map(b, idx => b.mousePressed(() => setMode(modes[idx])));
 
 	_reset = false;
 }
