@@ -140,11 +140,11 @@ function pomodoro(_work, _rest) {
 function createButtonsFromModes(modes) {
 	return modes
 		.map(createButton)
-		.map(b, idx => b.position(
+		.map((b, idx) => b.position(
 			windowWidth / 2 - buttonWidth / 2,
 			windowHeight / 2 + idx * buttonHeight - (buttonsAmount * buttonHeight) / 2))
 		.map(b => b.size(buttonWidth, buttonHeight))
-		.map(b, idx => b.mousePressed(() => setMode(modes[idx])));
+		.map((b, idx) => b.mousePressed(() => setMode(modes[idx])));
 }
 
 /**
