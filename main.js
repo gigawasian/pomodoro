@@ -1,17 +1,23 @@
-var pomodoromode = false;
-var modes = ["60x60", "25x25", "45x10", "1x1", "0.1x1", "90x90"]; //add modes here
+// Due to the way processing works, some variables that are treated as constants can't be declared as such, because they must be set in `setup()`.
+// We could probably avert this issue by severing the processing library from this project, and rewriting it in terms of DOM interaction. 
+
+const modes = ["60x60", "25x25", "45x10", "1x1", "0.1x1", "90x90"]; //add modes here
+const timeModes = { // Timer modes start at 0 and count by one. That makes it easier
+	"INDEPENDENT": 0, // Units are independent of each other: 1 hours, 60 minutes, 3600 seconds
+	"DEPENDENT": 1,  // Units depend on each other: 1 hours, 0 minutes, 0 seconds
+};
+
+var timerRunning = false;
 var buttons = [];
-var work, rest;
+var workTime, restTime;
 var working = true; //false=resting
 var currentButtonsAmount = 0;
-var buttonWidth, buttonHeight; //global
-var startTime;
+var buttonWidth, buttonHeight; // Should be constant, but due to the way processing works, must be set in `setup()`.
 var endTime;
 var doOnce = false; //for pomodoro screen
 var theText; //for pomodoro screen - global
-var timeMode = 1; //0=1hours,60minutes,3600seconds / 1=1hours,0minutes,0seconds
+var timeMode = timeModes.DEPENDENT; // TODO: #2 This should probably be made into its own class.
 var timeLeft;
-var _reset = false;
 var soundEffect;
 
 function setup() {
@@ -30,15 +36,14 @@ function setup() {
 }
 
 function draw() {
-	if (_reset) drawReset();
-	if (pomodoromode) pomodoro(work, rest);
+	if (timerRunning) pomodoro(workTime, restTime);
 }
 
-function drawReset() {
+function resetProgram() {
 	//executes once to reset program
 	buttons.forEach((b) => b.remove());
-	pomodoromode = false;
-	timeMode = 1;
+	timerRunning = false;
+	timeMode = timeModes.DEPENDENT;
 	clear();
 	//setup screen
 	background(200);
@@ -46,11 +51,25 @@ function drawReset() {
 	textAlign(CENTER);
 
 	buttons = createButtonsFromModes(modes);
-	_reset = false;
 }
 
 function mouseClicked() {
-	if (pomodoromode) timeMode = !timeMode;
+	if (timerRunning) timeMode = getNextTimeMode(timeMode);
+}
+
+/**
+ * Given a time mode, returns the next time mode in the `timeModes` object,
+ * or the first time mode if the current mode is the last.
+ * @param {any} currentTimeMode - A time mode, the one you start with.
+ * @returns A time mode, the next one relative to the one given, or the first if the current time mode was the last.
+ */
+function getNextTimeMode(currentTimeMode) {
+	const timeModesValues = Object.values(timeModes);
+	const nextTimeModeIndex = timeModesValues.indexOf(currentTimeMode) + 1
+	const currentModeIsNotLast = nextTimeModeIndex < Object.keys(timeModes).length;
+
+	if (currentModeIsNotLast) return timeModesValues[nextTimeModeIndex];
+	else return timeModesValues[0];
 }
 
 /**
@@ -58,12 +77,12 @@ function mouseClicked() {
  * @param {string} mode - The timer mode, formatted like so: `"<Work time>x<Rest time>"`
  */
 function setMode(mode) {
-	work = mode.substring(0, mode.indexOf("x"));
-	rest = mode.substring(mode.indexOf("x") + 1);
+	workTime = mode.substring(0, mode.indexOf("x"));
+	restTime = mode.substring(mode.indexOf("x") + 1);
 
 	buttons.forEach((b) => b.remove());
 
-	buttons[0] = makeButton("start", currentButtonsAmount = 1, () => (doOnce = pomodoromode = true));
+	buttons = [makeButton("start", currentButtonsAmount = 1, () => (doOnce = timerRunning = true))];
 }
 
 /**
@@ -76,10 +95,8 @@ function pomodoro(_work, _rest) {
 
 	if (doOnce) {
 		buttons.forEach((b) => b.remove());
-		startTime = getTime();
 		endTime = getTargetTime(working ? _work : _rest);
-		currentButtonsAmount = 6;
-		buttons[0] = makeButton("Reset", 6, () => (_reset = true));
+		buttons = [makeButton("Reset", currentButtonsAmount = modes.length, resetProgram)];
 
 		soundEffect.play();
 
@@ -95,7 +112,7 @@ function pomodoro(_work, _rest) {
 		working = !working; //switch modes
 		doOnce = true; //recalculate time to finish
 	}
-	if (timeMode == 0) {
+	if (timeMode == timeModes.INDEPENDENT) {
 		//set text based on display mode
 		theText = text(
 			(working ? "Working" : "Resting") +
@@ -112,7 +129,6 @@ function pomodoro(_work, _rest) {
 			windowHeight / 2
 		);
 	} else {
-		//=1
 		var secondsfixed = timeLeft[2] >= 60 ? timeLeft[2] % 60 : timeLeft[2];
 		secondsfixed = parseFloat(secondsfixed).toFixed(2);
 		theText = text(
