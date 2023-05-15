@@ -18,12 +18,12 @@ export default class TimeInformation {
 		return this.working ? this.workTime : this.restTime;
 	}
 	get hoursRemaining() {
-		return this.remainingTime[0];
+		return this.remainingTime.hours;
 	}
 	get minutesRemaining() {
-		return this.remainingTime[1];
+		return this.remainingTime.minutes;
 	}
 	get secondsRemaining() {
-		return this.remainingTime[2];
+		return this.remainingTime.seconds;
 	}
 }

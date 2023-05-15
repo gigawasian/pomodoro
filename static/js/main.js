@@ -1,11 +1,11 @@
 // Due to the way processing works, some variables that are treated as constants can't be declared as such, because they must be set in `setup()`.
 // We could probably avert this issue by severing the processing library from this project, and rewriting it in terms of DOM interaction.
 
-import * as presets from "./presets.js";
+import { timeFormatter } from "./presets.js";
+import { getTargetTime, getTime, getTimeDifference } from "./timeUtils.js";
 import TimeInformation from "./timeInformation.js";
 
 const modes = ["60x60", "25x25", "45x10", "1x1", "0.1x1", "0.02x0.02", "90x90"]; //add modes here
-const timeFormatter = presets.timeFormatter;
 
 var timerRunning = false;
 var buttons = [];
@@ -14,10 +14,10 @@ var working = true; //false=resting
 var currentButtonsAmount = 0;
 var buttonWidth, buttonHeight; // Should be constant, but due to the way processing works, must be set in `setup()`.
 var endTime;
-var doOnce = false; //for pomodoro screen
+var resetTimer = false; //for pomodoro screen
 var theText; //for pomodoro screen - global
 var timeLeft;
-var soundEffect;
+var soundEffect; // Should be constant.
 
 function setup() {
 	buttonWidth = windowWidth / 5;
@@ -26,11 +26,9 @@ function setup() {
 	createCanvas(windowWidth, windowHeight);
 
 	soundEffect = loadSound("static/audio/sound effect.mp3");
-	//setup screen
+
 	background(200);
-
 	textAlign(CENTER);
-
 	buttons = makeButtonsFromModes(modes);
 }
 
@@ -69,7 +67,7 @@ function setMode(mode) {
 		makeButton(
 			"start",
 			(currentButtonsAmount = 1),
-			() => (doOnce = timerRunning = true)
+			() => (resetTimer = timerRunning = true)
 		),
 	];
 }
@@ -82,7 +80,7 @@ function setMode(mode) {
 function pomodoro(workTime, restTime) {
 	textSize((windowWidth + windowHeight) / 2 / 25);
 
-	if (doOnce) {
+	if (resetTimer) {
 		buttons.forEach((b) => b.remove());
 		endTime = getTargetTime(working ? workTime : restTime);
 		buttons = [
@@ -95,17 +93,16 @@ function pomodoro(workTime, restTime) {
 
 		soundEffect.play();
 
-		doOnce = false;
+		resetTimer = false;
 	}
 
 	background(working ? color(0, 255, 0) : color(64, 64, 255));
 
 	timeLeft = getTimeDifference(getTime(), endTime);
 
-	if (timeLeft[2] <= 0) {
-		//negative seconds left
-		working = !working; //switch modes
-		doOnce = true; //recalculate time to finish
+	if (timeLeft.seconds <= 0) {
+		working = !working;
+		resetTimer = true; //recalculate time to finish
 	}
 
 	const currentTimeInfo = new TimeInformation(
@@ -114,7 +111,7 @@ function pomodoro(workTime, restTime) {
 		restTime,
 		timeLeft
 	);
-	
+
 	theText = standardText(timeFormatter.textFrom(currentTimeInfo));
 }
 
@@ -159,47 +156,11 @@ function makeButton(txt, totalButtons, mPressed) {
 			(totalButtons * buttonHeight) / 2
 	);
 	button.size(buttonWidth, buttonHeight);
-	button.mousePressed(mPressed); //function
+	button.mousePressed(mPressed);
 
 	currentButtonsAmount++;
 
 	return button;
-}
-
-/**
- * Gets the time, in seconds, since the start of the program.
- * @returns The time, in seconds, since the start of the program.
- */
-function getTime() {
-	return millis() / 1000;
-}
-
-/**
- * Returns how long the program will have ran for some number of minutes in the future.
- * Or, time in seconds from `setup()` to target time.
- * @param {number} mins - The number of minutes in the future .
- * @returns {number} How long the program would have ran `mins` minutes in the future, in seconds.
- */
-function getTargetTime(mins) {
-	return getTime() + mins * 60;
-}
-
-/**
- * Returns the difference in time between `current` and `target` in hours, minutes, and seconds.
- * @param {number} current - The current time, in seconds
- * @param {number} target - The target time, in seconds
- * @returns {number[]} An array of numbers, where element 0 is hours, 1 is minutes, 2 is seconds.
- */
-function getTimeDifference(current, target) {
-	// TODO: #1 Change this to return a more appropriate structure, maybe object.
-
-	const diff = target - current;
-
-	return [
-		Math.floor(diff / 60 / 60), // Hours
-		Math.floor(diff / 60), // Minutes
-		diff.toFixed(2), // Seconds to two decimal places
-	];
 }
 
 window.setup = setup;
